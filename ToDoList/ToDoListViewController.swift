@@ -33,6 +33,11 @@ class ToDoListViewController: UIViewController {
         
         let testItem = ToDoItemModel(name: "Running", details: "4km", completionDate: Date())
         toDoItems.append(testItem)
+         
+        let testItem2 = ToDoItemModel(name: "Driving 2", details: "150km 2", completionDate: Date())
+        toDoItems.append(testItem2)
+        
+        configureNavBar()
         
     }
     
@@ -96,9 +101,39 @@ extension ToDoListViewController: ToDoListDelegate {
     func update(task: ToDoItemModel, index: Int) {
         
         toDoItems[index] = task
-        
         tableView.reloadData()
+    }
+    
+    func configureNavBar() {
         
+        let addButton = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(handleAddButton))
+        navigationItem.leftBarButtonItem = addButton
+         
+        let editButton = UIBarButtonItem(barButtonSystemItem: .edit, target: self, action: #selector(handleEditButton))
+        navigationItem.rightBarButtonItem = editButton
+    }
+    
+}
+
+
+// MARK: - Selectors
+
+extension ToDoListViewController {
+    
+    @objc func handleAddButton() {
+        performSegue(withIdentifier: "AddTaskSegue", sender: nil)
+    }
+    
+    @objc func handleEditButton() {
+        tableView.setEditing(!tableView.isEditing, animated: true)
+        
+        // navItem rightBarButton changes between edit/done
+        if tableView.isEditing {
+            navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(handleEditButton))
+        } else {
+            let editButton = UIBarButtonItem(barButtonSystemItem: .edit, target: self, action: #selector(handleEditButton))
+            navigationItem.rightBarButtonItem = editButton
+        }
     }
     
 }
