@@ -20,7 +20,7 @@ class ToDoListViewController: UIViewController {
     
     // MARK: - Properties
     
-    var toDoItems: [ToDoItemModel] = [ToDoItemModel]()
+    var toDoItems = [ToDoItemModel]()
     
     
     // MARK: - LifeCycle
@@ -31,56 +31,21 @@ class ToDoListViewController: UIViewController {
         tableView.dataSource = self
         title = "To Do List"
         
-        let testItem = ToDoItemModel(name: "Running", details: "4km", completionDate: Date())
-        toDoItems.append(testItem)
-         
-        let testItem2 = ToDoItemModel(name: "Driving 2", details: "150km 2", completionDate: Date())
-        toDoItems.append(testItem2)
         
         configureNavBar()
         
+        NotificationCenter.default.addObserver(self, selector: #selector(addNewTask), name: NSNotification.Name.init("com.todolistapp.addtask"), object: nil)
+        
     }
     
-}
-
-// MARK: - TableView Data Source
-
-extension ToDoListViewController: UITableViewDataSource {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        toDoItems.count
+    deinit {
+        print("Deinit")
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name.init("com.todolistapp.addtask"), object: nil)
     }
     
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        
-        let item = toDoItems[indexPath.row]
-        
-        let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell")!
-        
-        cell.textLabel?.text = item.name
-        cell.detailTextLabel?.text = item.isComplete ? "Complete" : "Incomplete"
-        return cell
-    }
+  
     
-    
-}
-
-// MARK: - TableView Delegate
-
-extension ToDoListViewController: UITableViewDelegate {
-    
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        
-        let selectedItem = toDoItems[indexPath.row]
-        
-        let toDoTuple = (indexPath.row, selectedItem) // to pass index with item itself
-        
-        performSegue(withIdentifier: "TaskDetailsSegue", sender: toDoTuple)
-    }
-    
-}
-
-
-extension ToDoListViewController {
+    // MARK: - Prepare for Segue
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         
@@ -93,8 +58,55 @@ extension ToDoListViewController {
             destinationVC.delegate = self
         }
     }
+    
 }
 
+// MARK: - TableView Data Source
+
+extension ToDoListViewController: UITableViewDataSource {
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        toDoItems.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        
+        let item = toDoItems[indexPath.row]
+        let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell")!
+        
+        cell.textLabel?.text = item.name
+        cell.detailTextLabel?.text = item.isComplete ? "Complete" : "Incomplete"
+        return cell
+    }
+    
+ 
+    // Delete action on swipe or while editing
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        let action = UIContextualAction(style: .destructive, title: "Delete") { action, view, completion in
+
+            self.toDoItems.remove(at: indexPath.row)
+            tableView.deleteRows(at: [indexPath], with: .automatic)
+        }
+        return UISwipeActionsConfiguration(actions: [action])
+    }
+    
+}
+
+// MARK: - TableView Delegate
+
+extension ToDoListViewController: UITableViewDelegate {
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        
+        let selectedItem = toDoItems[indexPath.row]
+        let toDoTuple = (indexPath.row, selectedItem) // to pass index with item itself
+        performSegue(withIdentifier: "TaskDetailsSegue", sender: toDoTuple)
+    }
+    
+}
+
+
+// MARK: - ToDoListDelegate
 
 extension ToDoListViewController: ToDoListDelegate {
     
@@ -108,7 +120,7 @@ extension ToDoListViewController: ToDoListDelegate {
         
         let addButton = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(handleAddButton))
         navigationItem.leftBarButtonItem = addButton
-         
+        
         let editButton = UIBarButtonItem(barButtonSystemItem: .edit, target: self, action: #selector(handleEditButton))
         navigationItem.rightBarButtonItem = editButton
     }
@@ -134,6 +146,23 @@ extension ToDoListViewController {
             let editButton = UIBarButtonItem(barButtonSystemItem: .edit, target: self, action: #selector(handleEditButton))
             navigationItem.rightBarButtonItem = editButton
         }
+    }
+    
+    @objc func addNewTask(_ notif: NSNotification) {
+        
+        if let task = notif.object as? ToDoItemModel {
+            toDoItems.append(task)
+            print("1")
+        } else if  let taskDict = notif.userInfo as? NSDictionary {
+            guard let task2 = taskDict["Task"] as? ToDoItemModel else { return }
+            toDoItems.append(task2)
+            print("2")
+        } else {
+            return
+        }
+        
+        toDoItems.sort { $0.completionDate < $1.completionDate }
+        tableView.reloadData()
     }
     
 }

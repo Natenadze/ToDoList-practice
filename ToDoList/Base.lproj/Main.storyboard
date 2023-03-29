@@ -60,7 +60,7 @@
                     <connections>
                         <outlet property="tableView" destination="qu5-4n-exV" id="Pel-T1-4H7"/>
                         <segue destination="k7o-Ai-0d8" kind="show" identifier="TaskDetailsSegue" id="onK-HE-5pP"/>
-                        <segue destination="Xu4-Sk-1d2" kind="show" identifier="AddTaskSegue" id="xeJ-0G-k7a"/>
+                        <segue destination="Xu4-Sk-1d2" kind="presentation" identifier="AddTaskSegue" id="xeJ-0G-k7a"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
@@ -72,11 +72,11 @@
             <objects>
                 <viewController id="Xu4-Sk-1d2" customClass="AddTaskViewController" customModule="ToDoList" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="2OX-u0-xO0">
-                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="647"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="NyP-IY-3hx">
-                                <rect key="frame" x="0.0" y="88" width="375" height="579"/>
+                                <rect key="frame" x="0.0" y="44" width="375" height="603"/>
                                 <subviews>
                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="2pN-FO-F4l">
                                         <rect key="frame" x="0.0" y="0.0" width="375" height="603"/>
@@ -169,8 +169,11 @@
                                 </constraints>
                             </scrollView>
                             <navigationBar contentMode="scaleToFill" translucent="NO" translatesAutoresizingMaskIntoConstraints="NO" id="PVl-oU-5v1">
-                                <rect key="frame" x="0.0" y="44" width="375" height="44"/>
+                                <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <textAttributes key="titleTextAttributes">
+                                    <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                </textAttributes>
                             </navigationBar>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="Wp4-BO-c57"/>
