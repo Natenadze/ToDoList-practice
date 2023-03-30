@@ -26,6 +26,7 @@ class Task: Object {
     // We have to give a unique ID to every object
     @objc dynamic var id = 0
     
+    // to specify the name of the property, to be used as a primary key
     override static func primaryKey() -> String? {
         return "id"
     }

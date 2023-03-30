@@ -169,7 +169,6 @@ extension ToDoListViewController {
     
     //
     @objc func addNewTask() {
-        
         tableView.reloadData()
     }
     

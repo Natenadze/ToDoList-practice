@@ -39,47 +39,58 @@ class AddTaskViewController: UIViewController {
         alert.addAction(okAction)
         present(alert, animated: true, completion: nil)
     }
-
+    
+    //
+    func validateTaskDetails() -> (name: String, details: String, completionDate: Date)? {
+        
+        // Check Name TextField
+        guard let taskName = taskNameTextField.text, !taskName.isEmpty else {
+            reportError(title: "Invalid Task Name", message: "Task name is required")
+            return nil
+        }
+        
+        // Check description text View
+        let taskDetails = taskDetailsTextView.text.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        if taskDetails.isEmpty {
+            reportError(title: "Invalid Task Details", message: "Task details are required")
+            return nil
+        }
+        
+        // Check the Date not to be  past
+        let completionDate = taskCompletionDatePicker.date
+        if completionDate < Date() {
+            reportError(title: "Invalid Date", message: "Date must be in the future")
+            return nil
+        }
+        
+        return (name: taskName, details: taskDetails, completionDate: completionDate)
+    }
+    
+    
     
     // MARK: - Actions
     
     @IBAction func addTaskDidTouch(_ sender: Any) {
         
-        let taskDetails: String = taskDetailsTextView.text
-        let completionDate: Date = taskCompletionDatePicker.date
+        guard let taskDetails = validateTaskDetails() else { return }
         
-        guard let taskName = taskNameTextField.text, !taskName.isEmpty else {
-            reportError(title: "Invalid Task Name", message: "Task name is required")
-            return
-        }
-        
-        if taskDetailsTextView.text.isEmpty {
-            reportError(title: "Invalid Task Details", message: "Task details are required")
-            return
-        }
-        
-        if completionDate < Date() {
-            reportError(title: "Invalid Date", message: "Date must be in the future")
-            return
-        }
-       
         guard let realm = LocalDataBaseManager.realm else {
             reportError(title: "Error", message: "A new task could not be created")
             return
         }
         
-        // what is max number for id and create next one by adding 1
+        // get newTask ID
         let nextTaskId = (realm.objects(Task.self).max(ofProperty: "id") as Int? ?? 0) + 1
         
-        // create new Task
+        // create Task
         let newTask = Task()
         newTask.id = nextTaskId
-        newTask.name = taskName
-        newTask.details = taskDetails
-        newTask.completionDate = completionDate 
-        newTask.isComplete = false   // do i need this??
+        newTask.name = taskDetails.name
+        newTask.details = taskDetails.details
+        newTask.completionDate = taskDetails.completionDate
         
-        // try to save newTask or show error (ex: no enough space in phone)
+        // Add to Realm DataBase
         do {
             try realm.write({
                 realm.add(newTask)
@@ -90,11 +101,11 @@ class AddTaskViewController: UIViewController {
             return
         }
         
+        // Send Notification
         NotificationCenter.default.post(name: NSNotification.Name.init("com.todolistapp.addtask"), object: nil)
-
+        
         dismiss(animated: true)
+        
     }
-    
-    
     
 }
