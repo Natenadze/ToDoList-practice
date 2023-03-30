@@ -39,9 +39,7 @@ class AddTaskViewController: UIViewController {
         alert.addAction(okAction)
         present(alert, animated: true, completion: nil)
     }
-    
-    
-    
+
     
     // MARK: - Actions
     
@@ -65,14 +63,35 @@ class AddTaskViewController: UIViewController {
             return
         }
        
-        let toDoItem = ToDoItemModel(name: taskName, details: taskDetails, completionDate: completionDate)
-        // first way to pass data with object
-        NotificationCenter.default.post(name: NSNotification.Name.init("com.todolistapp.addtask"), object: toDoItem)
+        guard let realm = LocalDataBaseManager.realm else {
+            reportError(title: "Error", message: "A new task could not be created")
+            return
+        }
         
-        // second way with user info, ( to include some additional info )
-//        let toDoDict = ["Task": toDoItem]
-//        NotificationCenter.default.post(name: NSNotification.Name.init("com.todolistapp.addtask"), object: nil, userInfo: toDoDict)
+        // what is max number for id and create next one by adding 1
+        let nextTaskId = (realm.objects(Task.self).max(ofProperty: "id") as Int? ?? 0) + 1
         
+        // create new Task
+        let newTask = Task()
+        newTask.id = nextTaskId
+        newTask.name = taskName
+        newTask.details = taskDetails
+        newTask.completionDate = completionDate as NSDate
+        newTask.isComplete = false   // do i need this??
+        
+        // try to save newTask or show error (ex: no enough space in phone)
+        do {
+            try realm.write({
+                realm.add(newTask)
+            })
+        } catch let error as NSError {
+            print(error.localizedDescription)
+            reportError(title: "Error", message: "A new task could not be created")
+            return
+        }
+        
+        NotificationCenter.default.post(name: NSNotification.Name.init("com.todolistapp.addtask"), object: nil)
+
         dismiss(animated: true)
     }
     

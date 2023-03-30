@@ -16,7 +16,7 @@ class ToDoDetailsViewController: UIViewController {
     @IBOutlet weak var taskCompletionButton: UIButton!
     @IBOutlet weak var taskCompletionDate: UILabel!
     
-    var toDoItem: ToDoItemModel!
+    var toDoItem: Task!
     var toDoIndex: Int!
     weak var delegate: ToDoListDelegate?
     
@@ -47,7 +47,7 @@ class ToDoDetailsViewController: UIViewController {
         // MM = month in numbers
         // MMM = month in String
         formatter.dateFormat = "MMM dd, yyyy - hh:mm"
-        let taskDate = formatter.string(from: toDoItem.completionDate)
+        let taskDate = formatter.string(from: toDoItem.completionDate as Date)
         taskCompletionDate.text = taskDate
     }
     
@@ -61,8 +61,19 @@ class ToDoDetailsViewController: UIViewController {
     // MARK: - IBAction
     
     @IBAction func taskDidComplete(_ sender: Any) {
-        toDoItem.isComplete = true
-        delegate?.update(task: toDoItem, index: toDoIndex)
+        
+        guard let realm = LocalDataBaseManager.realm else { return }
+        
+        do {
+            try realm.write({
+                toDoItem.isComplete = true
+            })
+        } catch let error as NSError {
+            print(error.localizedDescription)
+            return
+        }
+        
+        delegate?.update()
         disableButton()
     }
     

@@ -9,7 +9,7 @@ import RealmSwift
 
 protocol ToDoListDelegate: AnyObject {
     
-    func update(task: ToDoItemModel, index: Int)
+    func update()
     
 }
 
@@ -21,7 +21,12 @@ class ToDoListViewController: UIViewController {
     
     // MARK: - Properties
     
-    var toDoItems = [ToDoItemModel]()
+    var toDoItems: Results<Task>? {
+        get {
+            guard let realm = LocalDataBaseManager.realm else { return nil}
+            return realm.objects(Task.self)
+        }
+    }
     
     
     // MARK: - LifeCycle
@@ -44,7 +49,7 @@ class ToDoListViewController: UIViewController {
         NotificationCenter.default.removeObserver(self, name: NSNotification.Name.init("com.todolistapp.addtask"), object: nil)
     }
     
-  
+    
     
     // MARK: - Prepare for Segue
     
@@ -52,7 +57,7 @@ class ToDoListViewController: UIViewController {
         
         if segue.identifier == "TaskDetailsSegue" {
             guard let destinationVC = segue.destination as? ToDoDetailsViewController else { return }
-            guard let tupleItem = sender as? (Int, ToDoItemModel) else { return }
+            guard let tupleItem = sender as? (Int, Task) else { return }
             
             destinationVC.toDoIndex = tupleItem.0  // pass index
             destinationVC.toDoItem = tupleItem.1   // pass toDo item
@@ -67,12 +72,12 @@ class ToDoListViewController: UIViewController {
 extension ToDoListViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        toDoItems.count
+        toDoItems?.count ?? 0
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        let item = toDoItems[indexPath.row]
+        let item = toDoItems![indexPath.row]
         let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell")!
         
         cell.textLabel?.text = item.name
@@ -80,13 +85,24 @@ extension ToDoListViewController: UITableViewDataSource {
         return cell
     }
     
- 
+    
     // Delete action on swipe or while editing
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         let action = UIContextualAction(style: .destructive, title: "Delete") { action, view, completion in
-
-            self.toDoItems.remove(at: indexPath.row)
-            tableView.deleteRows(at: [indexPath], with: .automatic)
+            
+            guard let realm = LocalDataBaseManager.realm else { return }
+            
+            // Delete data
+            do {
+                try realm.write({
+                    realm.delete(self.toDoItems![indexPath.row])
+                })
+            } catch let error as NSError{
+                print(error.localizedDescription)
+                return
+            }
+            
+            self.tableView.deleteRows(at: [indexPath], with: .automatic)
         }
         return UISwipeActionsConfiguration(actions: [action])
     }
@@ -99,7 +115,7 @@ extension ToDoListViewController: UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
-        let selectedItem = toDoItems[indexPath.row]
+        let selectedItem = toDoItems![indexPath.row]
         let toDoTuple = (indexPath.row, selectedItem) // to pass index with item itself
         performSegue(withIdentifier: "TaskDetailsSegue", sender: toDoTuple)
     }
@@ -111,9 +127,9 @@ extension ToDoListViewController: UITableViewDelegate {
 
 extension ToDoListViewController: ToDoListDelegate {
     
-    func update(task: ToDoItemModel, index: Int) {
+    func update() {
         
-        toDoItems[index] = task
+        
         tableView.reloadData()
     }
     
@@ -133,10 +149,12 @@ extension ToDoListViewController: ToDoListDelegate {
 
 extension ToDoListViewController {
     
+    //
     @objc func handleAddButton() {
         performSegue(withIdentifier: "AddTaskSegue", sender: nil)
     }
     
+    //
     @objc func handleEditButton() {
         tableView.setEditing(!tableView.isEditing, animated: true)
         
@@ -149,20 +167,9 @@ extension ToDoListViewController {
         }
     }
     
+    //
     @objc func addNewTask(_ notif: NSNotification) {
         
-        if let task = notif.object as? ToDoItemModel {
-            toDoItems.append(task)
-            print("1")
-        } else if  let taskDict = notif.userInfo as? NSDictionary {
-            guard let task2 = taskDict["Task"] as? ToDoItemModel else { return }
-            toDoItems.append(task2)
-            print("2")
-        } else {
-            return
-        }
-        
-        toDoItems.sort { $0.completionDate < $1.completionDate }
         tableView.reloadData()
     }
     
