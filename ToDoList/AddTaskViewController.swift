@@ -76,7 +76,7 @@ class AddTaskViewController: UIViewController {
         newTask.id = nextTaskId
         newTask.name = taskName
         newTask.details = taskDetails
-        newTask.completionDate = completionDate as NSDate
+        newTask.completionDate = completionDate 
         newTask.isComplete = false   // do i need this??
         
         // try to save newTask or show error (ex: no enough space in phone)

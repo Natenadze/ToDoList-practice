@@ -24,7 +24,7 @@ class ToDoListViewController: UIViewController {
     var toDoItems: Results<Task>? {
         get {
             guard let realm = LocalDataBaseManager.realm else { return nil}
-            return realm.objects(Task.self)
+            return realm.objects(Task.self).sorted(byKeyPath: "completionDate", ascending: true)
         }
     }
     
@@ -168,7 +168,7 @@ extension ToDoListViewController {
     }
     
     //
-    @objc func addNewTask(_ notif: NSNotification) {
+    @objc func addNewTask() {
         
         tableView.reloadData()
     }
