@@ -70,7 +70,7 @@ class AddTaskViewController: UIViewController {
         NotificationCenter.default.post(name: NSNotification.Name.init("com.todolistapp.addtask"), object: toDoItem)
         
         // second way with user info, ( to include some additional info )
-        let toDoDict = ["Task": toDoItem]
+//        let toDoDict = ["Task": toDoItem]
 //        NotificationCenter.default.post(name: NSNotification.Name.init("com.todolistapp.addtask"), object: nil, userInfo: toDoDict)
         
         dismiss(animated: true)
